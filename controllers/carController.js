@@ -118,10 +118,9 @@ const getCars = async (req, res) => {
     // Check if there's a filter in the request (e.g., ?status=available)
     const filter = req.query.status ? { status: req.query.status } : {};
 
-    const cars = await Car.find(filter).populate(
-      "user",
-      "username email phone"
-    );
+    const cars = await Car.find(filter)
+      .populate("user", "username email phone")
+      .sort({ createdAt: -1 });
 
     // Debugging: Log API response
     console.log("Cars API Response:", cars);
