@@ -10,6 +10,7 @@ const carRoutes = require("./routes/carRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const wishlistRoutes = require("./routes/wishlistRoutes");
 const conversationRoutes = require("./routes/conversationRoutes"); // NEW
+const contactRoutes = require("./routes/contactRoutes"); // NEW
 const errorHandler = require("./middleware/errorMiddleware");
 const http = require("http");
 const { initializeSocket } = require("./socket");
@@ -39,6 +40,7 @@ app.use("/api/cars", carRoutes);
 app.use("/api/conversations", conversationRoutes); // NEW
 app.use("/api/messages", messageRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/contact", contactRoutes);
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

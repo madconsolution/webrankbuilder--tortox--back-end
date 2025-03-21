@@ -1,4 +1,8 @@
 const Car = require("../models/Car");
+const { sendEmail } = require("../services/emailService");
+const {
+  carListingApprovalEmailTemplate,
+} = require("../services/emailTemplates");
 
 // @desc    Add a new car
 // @route   POST /api/cars
@@ -60,13 +64,21 @@ const addCar = async (req, res) => {
 // @route   PUT /api/cars/:id
 const updateCar = async (req, res) => {
   try {
-    const car = await Car.findById(req.params.id);
+    const car = await Car.findById(req.params.id).populate(
+      "user",
+      "username email phone"
+    );
     if (!car) {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
 
+    console.log("Car User", car.user);
+
     // Ensure the authenticated user is the owner of the car
-    if (car.user.toString() !== req.user.id) {
+    if (
+      car.user._id.toString() !== req.user.id ||
+      req?.user?.role !== "admin"
+    ) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
@@ -95,6 +107,9 @@ const updateCar = async (req, res) => {
     }
 
     await car.save();
+
+    await approveCarListing(car?.user?.email, car.make);
+
     res.json({ success: true, data: car });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -228,6 +243,20 @@ const deleteCar = async (req, res) => {
     res.json({ success: true, message: "Car deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const approveCarListing = async (carOwnerEmail, carTitle) => {
+  const subject = "Your Car Listing is Approved!";
+  const html = carListingApprovalEmailTemplate(carTitle);
+
+  try {
+    // Send the email
+    await sendEmail(carOwnerEmail, subject, "", html);
+  } catch (error) {
+    // Log the error if the email failed to send
+    console.error("Failed to send email", error.message);
+    throw new Error("Failed to send email");
   }
 };
 

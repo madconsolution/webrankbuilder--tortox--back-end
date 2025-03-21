@@ -1,5 +1,8 @@
+const { sendEmail } = require("../services/emailService");
+const { forgotPasswordEmailTemplate } = require("../services/emailTemplates");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 // Generate JWT Token
 const generateToken = (res, userId) => {
@@ -76,4 +79,86 @@ const logoutUser = (req, res) => {
   res.json({ message: "Logged out successfully" });
 };
 
-module.exports = { registerUser, loginUser, logoutUser };
+const handleForgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Step 1: Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Step 2: Generate a password reset token (not using the user's password here)
+    const resetToken = jwt.sign(
+      { email: user.email }, // We pass the email to identify the user
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" } // Token expires in 1 hour
+    );
+
+    // Step 3: Create the password reset link
+    const resetLink = `http://localhost:5173/change-password/${resetToken}`;
+
+    // Step 4: Email content
+    const subject = "Password Reset Request";
+    const html = `
+      <h1>Password Reset Request</h1>
+      <p>We received a request to reset your password. To proceed, click the link below:</p>
+      <a href="${resetLink}">Reset Password</a>
+      <p>If you didn't request this, please ignore this email.</p>
+    `;
+
+    // Step 5: Send the email with the reset link
+    await sendEmail(user.email, subject, "", html);
+
+    return res.status(200).json({ message: "Password reset email sent!" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Failed to send email",
+      error: error.message,
+    });
+  }
+};
+
+const handleChangePassword = async (req, res) => {
+  const { resetToken, newPassword } = req.body;
+
+  try {
+    // Step 1: Verify the reset token
+    const decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+
+    // Step 2: Find the user by email (from the decoded token)
+    const user = await User.findOne({ email: decoded.email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid reset token" });
+    }
+
+    // Step 3: Set the new password (no need to hash it manually)
+    console.log("Old Password:", user.password);
+    console.log("New Password:", newPassword);
+
+    user.password = newPassword; // No manual hashing here
+
+    // Step 4: Save the updated user
+    await user.save();
+
+    console.log("User after saving:", user);
+
+    return res.status(200).json({ message: "Password changed successfully!" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Failed to reset password",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  logoutUser,
+  handleForgotPassword,
+  handleChangePassword,
+};
