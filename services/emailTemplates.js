@@ -52,8 +52,33 @@ const carListingApprovalEmailTemplate = (carTitle) => {
   `;
 };
 
+/**
+ * Template for notifying the admin of a new car listing.
+ * @param {string} make - The car make.
+ * @param {string} model - The car model.
+ * @param {string} priceUSD - The car price in USD.
+ * @param {string} userEmail - The email of the user who listed the car.
+ * @returns {string} HTML content for the email.
+ */
+const newCarNotificationTemplate = (make, model, priceUSD, userEmail) => {
+  return `
+    <div style="font-family: Arial, sans-serif; color: #333;">
+      <h2 style="color: #2c3e50;">New Car Listing for Approval</h2>
+      <p>A new car has been listed on the platform. Here are the details:</p>
+      <ul>
+        <li><strong>Make:</strong> ${make}</li>
+        <li><strong>Model:</strong> ${model}</li>
+        <li><strong>Price (USD):</strong> $${priceUSD}</li>
+        <li><strong>Listed by:</strong> ${userEmail}</li>
+      </ul>
+      <p>Please review and approve the listing.</p>
+    </div>
+  `;
+};
+
 module.exports = {
   contactFormEmailTemplate,
   forgotPasswordEmailTemplate,
   carListingApprovalEmailTemplate,
+  newCarNotificationTemplate,
 };

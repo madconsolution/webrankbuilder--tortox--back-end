@@ -54,6 +54,17 @@ const addCar = async (req, res) => {
     });
 
     await car.save();
+
+    // Notify the admin after saving the car
+    const subject = "New Car Listed for Approval";
+    const html = newCarNotificationTemplate(
+      make,
+      model,
+      priceUSD,
+      req.user.email
+    );
+    await sendEmail(process.env.EMAIL_USER, subject, "", html);
+
     res.status(201).json({ success: true, data: car });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -108,7 +119,8 @@ const updateCar = async (req, res) => {
 
     await car.save();
 
-    await approveCarListing(car?.user?.email, car.make);
+    if (car.status !== "pending" || car.status !== "sold")
+      await approveCarListing(car?.user?.email, car.make);
 
     res.json({ success: true, data: car });
   } catch (error) {

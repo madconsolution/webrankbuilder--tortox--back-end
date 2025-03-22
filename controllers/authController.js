@@ -97,7 +97,7 @@ const handleForgotPassword = async (req, res) => {
     );
 
     // Step 3: Create the password reset link
-    const resetLink = `http://localhost:5173/change-password/${resetToken}`;
+    const resetLink = `http://syriasouq.com/change-password/${resetToken}`;
 
     // Step 4: Email content
     const subject = "Password Reset Request";
