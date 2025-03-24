@@ -2,6 +2,7 @@ const Car = require("../models/Car");
 const { sendEmail } = require("../services/emailService");
 const {
   carListingApprovalEmailTemplate,
+  newCarNotificationTemplate,
 } = require("../services/emailTemplates");
 
 // @desc    Add a new car
