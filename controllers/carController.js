@@ -49,7 +49,7 @@ const addCar = async (req, res) => {
       fuelType,
       exteriorColor,
       interiorColor,
-      selectedFeatures: parsedFeatures,
+      features: parsedFeatures,
       description,
       images,
     });
