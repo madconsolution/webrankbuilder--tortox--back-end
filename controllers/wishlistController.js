@@ -1,4 +1,5 @@
 const Wishlist = require("../models/Wishlist");
+const mongoose = require("mongoose");
 
 // @desc    Add a new Wishlist
 // @route   POST /api/wishlist
@@ -10,7 +11,7 @@ const addWishlist = async (req, res) => {
 
     const wishlist = new Wishlist({
       user: req.user.id, // Ensure user is authenticated
-      car: carId,
+      car: new mongoose.Types.ObjectId(carId),
     });
 
     await wishlist.save();
@@ -52,10 +53,9 @@ const getWishlistById = async (req, res) => {
 
 const getWishlistByUserId = async (req, res) => {
   try {
-    const wishlists = await Wishlist.find({ user: req.params.id }).populate(
-      "user",
-      "username email"
-    );
+    const wishlists = await Wishlist.find({ user: req.params.id })
+      .populate("user", "username email")
+      .populate("car");
 
     if (wishlists.length === 0) {
       return res
