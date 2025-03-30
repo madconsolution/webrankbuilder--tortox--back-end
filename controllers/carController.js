@@ -84,11 +84,11 @@ const updateCar = async (req, res) => {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
 
-    console.log("Car User", car.user);
+    console.log("Cars from hit: ", car, "from request User: ", req.user);
 
     // Ensure the authenticated user is the owner of the car
     if (
-      car.user._id.toString() !== req.user.id ||
+      car.user._id.toString() !== req.user.id &&
       req?.user?.role !== "admin"
     ) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
@@ -151,7 +151,7 @@ const getCars = async (req, res) => {
       .sort({ createdAt: -1 });
 
     // Debugging: Log API response
-    console.log("Cars API Response:", cars);
+    // console.log("Cars API Response:", cars);
 
     // Ensure response structure
     const responseData = { success: true, data: cars };
