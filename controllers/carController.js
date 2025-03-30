@@ -57,14 +57,14 @@ const addCar = async (req, res) => {
     await car.save();
 
     // Notify the admin after saving the car
-    const subject = "New Car Listed for Approval";
-    const html = newCarNotificationTemplate(
-      make,
-      model,
-      priceUSD,
-      req.user.email
-    );
-    await sendEmail(process.env.EMAIL_USER, subject, "", html);
+    // const subject = "New Car Listed for Approval";
+    // const html = newCarNotificationTemplate(
+    //   make,
+    //   model,
+    //   priceUSD,
+    //   req.user.email
+    // );
+    // await sendEmail(process.env.EMAIL_USER, subject, "", html);
 
     res.status(201).json({ success: true, data: car });
   } catch (error) {
@@ -78,7 +78,7 @@ const updateCar = async (req, res) => {
   try {
     const car = await Car.findById(req.params.id).populate(
       "user",
-      "username email phone"
+      "username phone"
     );
     if (!car) {
       return res.status(404).json({ success: false, message: "Car not found" });
@@ -120,8 +120,8 @@ const updateCar = async (req, res) => {
 
     await car.save();
 
-    if (car.status !== "pending" || car.status !== "sold")
-      await approveCarListing(car?.user?.email, car.make);
+    // if (car.status !== "pending" || car.status !== "sold")
+    // await approveCarListing(car?.user?.email, car.make);
 
     res.json({ success: true, data: car });
   } catch (error) {
