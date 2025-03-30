@@ -4,9 +4,16 @@ const User = require("../models/User");
 // @route   POST /api/users
 const createUser = async (req, res) => {
   try {
-    const { name, email, phone, age } = req.body;
+    const { name, email, phone, age, phoneCode } = req.body;
     const role = "user";
-    const newUser = await User.create({ name, email, phone, age, role });
+    const newUser = await User.create({
+      name,
+      email,
+      phone,
+      age,
+      phoneCode,
+      role,
+    });
     res.status(201).json(newUser);
   } catch (error) {
     res.status(400).json({ error: error.message });

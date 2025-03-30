@@ -26,11 +26,16 @@ const registerUser = async (req, res) => {
   try {
     const { username, email, password, phone } = req.body;
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ phone });
     if (userExists)
       return res.status(400).json({ message: "User already exists" });
 
-    const user = await User.create({ username, email, password, phone });
+    const user = await User.create({
+      username,
+      email,
+      password,
+      phone,
+    });
 
     if (user) {
       const jwt = generateToken(res, user._id);
@@ -38,6 +43,7 @@ const registerUser = async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        phone: user.phone,
         jwt,
       });
     } else {
@@ -52,8 +58,8 @@ const registerUser = async (req, res) => {
 // @route   POST /api/auth/login
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const { email, password, phone } = req.body;
+    const user = await User.findOne({ phone });
 
     if (user && (await user.matchPassword(password))) {
       const jwt = generateToken(res, user._id);
@@ -61,6 +67,7 @@ const loginUser = async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         jwt,
       });
