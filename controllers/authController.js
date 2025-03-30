@@ -24,13 +24,7 @@ const generateToken = (res, userId) => {
 // @route   POST /api/auth/register
 const registerUser = async (req, res) => {
   try {
-    const { username, email, password, phone } = req.body;
-
-    // Check if the email is empty and set it to null or avoid saving it
-    let sanitizedEmail = email?.trim();
-    if (sanitizedEmail === "") {
-      sanitizedEmail = null; // You can either set it to null or leave it empty
-    }
+    const { username, password, phone } = req.body;
 
     const userExists = await User.findOne({ phone });
     if (userExists)
@@ -38,9 +32,9 @@ const registerUser = async (req, res) => {
 
     const user = await User.create({
       username,
-      email: sanitizedEmail,
       password,
       phone,
+      role: "user",
     });
 
     if (user) {
@@ -64,7 +58,7 @@ const registerUser = async (req, res) => {
 // @route   POST /api/auth/login
 const loginUser = async (req, res) => {
   try {
-    const { email, password, phone } = req.body;
+    const { password, phone } = req.body;
     const user = await User.findOne({ phone });
 
     if (user && (await user.matchPassword(password))) {
@@ -72,7 +66,6 @@ const loginUser = async (req, res) => {
       res.json({
         _id: user._id,
         username: user.username,
-        email: user.email,
         phone: user.phone,
         role: user.role,
         jwt,
