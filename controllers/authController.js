@@ -26,13 +26,19 @@ const registerUser = async (req, res) => {
   try {
     const { username, email, password, phone } = req.body;
 
+    // Check if the email is empty and set it to null or avoid saving it
+    let sanitizedEmail = email?.trim();
+    if (sanitizedEmail === "") {
+      sanitizedEmail = null; // You can either set it to null or leave it empty
+    }
+
     const userExists = await User.findOne({ phone });
     if (userExists)
       return res.status(400).json({ message: "User already exists" });
 
     const user = await User.create({
       username,
-      email,
+      email: sanitizedEmail,
       password,
       phone,
     });
