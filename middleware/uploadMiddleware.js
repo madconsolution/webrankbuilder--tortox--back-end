@@ -30,7 +30,7 @@ const createStorage = (folder) => {
 
 // File upload filter (only images)
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png/;
+  const allowedTypes = /jpeg|jpg|png|HEIF/;
   const extname = allowedTypes.test(
     path.extname(file.originalname).toLowerCase()
   );
@@ -39,7 +39,7 @@ const fileFilter = (req, file, cb) => {
   if (extname && mimetype) {
     cb(null, true);
   } else {
-    cb(new Error("Only images (jpeg, jpg, png) are allowed"));
+    cb(new Error("Only images (jpeg, jpg, png, HEIF) are allowed"));
   }
 };
 
