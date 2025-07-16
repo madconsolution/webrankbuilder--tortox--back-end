@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
-const carRoutes = require("./routes/carRoutes");
+const productRoutes = require("./routes/productRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const wishlistRoutes = require("./routes/wishlistRoutes");
 const conversationRoutes = require("./routes/conversationRoutes"); // NEW
@@ -36,7 +36,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/cars", carRoutes);
+app.use("/api/products", productRoutes);
 app.use("/api/conversations", conversationRoutes); // NEW
 app.use("/api/messages", messageRoutes);
 app.use("/api/wishlist", wishlistRoutes);

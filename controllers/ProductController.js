@@ -1,13 +1,13 @@
-const Car = require("../models/Car");
+const Product = require("../models/Product");
 const { sendEmail } = require("../services/emailService");
 const {
   carListingApprovalEmailTemplate,
   newCarNotificationTemplate,
 } = require("../services/emailTemplates");
 
-// @desc    Add a new car
-// @route   POST /api/cars
-const addCar = async (req, res) => {
+// @desc    Add a new product
+// @route   POST /api/products
+const addProduct = async (req, res) => {
   try {
     const {
       make,
@@ -35,7 +35,7 @@ const addCar = async (req, res) => {
         ? JSON.parse(selectedFeatures)
         : selectedFeatures;
 
-    const car = new Car({
+    const product = new Product({
       user: req.user.id, // Ensure user is authenticated
       make,
       model,
@@ -54,7 +54,7 @@ const addCar = async (req, res) => {
       images,
     });
 
-    await car.save();
+    await product.save();
 
     // Notify the admin after saving the car
     // const subject = "New Car Listed for Approval";
@@ -66,71 +66,71 @@ const addCar = async (req, res) => {
     // );
     // await sendEmail(process.env.EMAIL_USER, subject, "", html);
 
-    res.status(201).json({ success: true, data: car });
+    res.status(201).json({ success: true, data: product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Update car listing
-// @route   PUT /api/cars/:id
-const updateCar = async (req, res) => {
+// @desc    Update product listing
+// @route   PUT /api/products/:id
+const updateProduct = async (req, res) => {
   try {
-    const car = await Car.findById(req.params.id).populate(
+    const product = await Product.findById(req.params.id).populate(
       "user",
       "username phone"
     );
-    if (!car) {
+    if (!product) {
       return res.status(404).json({ success: false, message: "Car not found" });
     }
 
-    console.log("Cars from hit: ", car, "from request User: ", req.user);
+    console.log("Cars from hit: ", product, "from request User: ", req.user);
 
     // Ensure the authenticated user is the owner of the car
     if (
-      car.user._id.toString() !== req.user.id &&
+      product.user._id.toString() !== req.user.id &&
       req?.user?.role !== "admin"
     ) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
     // Update fields if provided
-    car.make = req.body.make || car.make;
-    car.model = req.body.model || car.model;
-    car.priceUSD = req.body.priceUSD || car.priceUSD;
-    car.priceSYP = req.body.priceSYP || car.priceSYP;
-    car.year = req.body.year || car.year;
-    car.kilometer = req.body.kilometer || car.kilometer;
-    car.engineSize = req.body.engineSize || car.engineSize;
-    car.location = req.body.location || car.location;
-    car.transmission = req.body.transmission || car.transmission;
-    car.fuelType = req.body.fuelType || car.fuelType;
-    car.exteriorColor = req.body.exteriorColor || car.exteriorColor;
-    car.interiorColor = req.body.interiorColor || car.interiorColor;
-    car.features = req.body.features
+    product.make = req.body.make || product.make;
+    product.model = req.body.model || product.model;
+    product.priceUSD = req.body.priceUSD || product.priceUSD;
+    product.priceSYP = req.body.priceSYP || product.priceSYP;
+    product.year = req.body.year || product.year;
+    product.kilometer = req.body.kilometer || product.kilometer;
+    product.engineSize = req.body.engineSize || product.engineSize;
+    product.location = req.body.location || product.location;
+    product.transmission = req.body.transmission || product.transmission;
+    product.fuelType = req.body.fuelType || product.fuelType;
+    product.exteriorColor = req.body.exteriorColor || product.exteriorColor;
+    product.interiorColor = req.body.interiorColor || product.interiorColor;
+    product.features = req.body.features
       ? JSON.parse(req.body.features)
-      : car.features;
-    car.description = req.body.description || car.description;
-    car.status = req.body.status || car.status;
+      : product.features;
+    product.description = req.body.description || product.description;
+    product.status = req.body.status || product.status;
 
     // Update images if new ones are uploaded
     if (req.files && req.files.length > 0) {
-      car.images = req.files.map((file) => file.filename);
+      product.images = req.files.map((file) => file.filename);
     }
 
-    await car.save();
+    await product.save();
 
-    // if (car.status !== "pending" || car.status !== "sold")
-    // await approveCarListing(car?.user?.email, car.make);
+    // if (product.status !== "pending" || product.status !== "sold")
+    // await approveproductListing(product?.user?.email, product.make);
 
-    res.json({ success: true, data: car });
+    res.json({ success: true, data: product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Get all cars
-// @route   GET /api/cars
+// @desc    Get all products
+// @route   GET /api/products
 // const getCars = async (req, res) => {
 //   try {
 //     const cars = await Car.find().populate("user", "username email phone");
@@ -141,23 +141,26 @@ const updateCar = async (req, res) => {
 //   }
 // };
 
-const getCars = async (req, res) => {
+const getProducts = async (req, res) => {
   try {
     // Check if there's a filter in the request (e.g., ?status=available)
     const filter = req.query.status ? { status: req.query.status } : {};
 
-    const cars = await Car.find(filter)
+    const products = await Product.find(filter)
       .populate("user", "username email phone")
       .sort({ createdAt: -1 });
 
     // Debugging: Log API response
-    // console.log("Cars API Response:", cars);
+    // console.log("products API Response:", products);
 
     // Ensure response structure
-    const responseData = { success: true, data: cars };
+    const responseData = { success: true, data: products };
 
     // Ensure headers for React Admin pagination
-    res.set("Content-Range", `cars 0-${cars.length}/${cars.length}`);
+    res.set(
+      "Content-Range",
+      `products 0-${products.length}/${products.length}`
+    );
     res.set("Access-Control-Expose-Headers", "Content-Range");
 
     res.json(responseData); // ✅ Ensure response contains `data`
@@ -201,35 +204,38 @@ const getCars = async (req, res) => {
 
 // @desc    Get a single car by ID
 // @route   GET /api/cars/:id
-const getCarById = async (req, res) => {
+
+const getProductById = async (req, res) => {
   try {
-    const car = await Car.findById(req.params.id).populate(
+    const product = await Product.findById(req.params.id).populate(
       "user",
       "username email phone"
     );
-    if (!car) {
-      return res.status(404).json({ success: false, message: "Car not found" });
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
-    res.json({ success: true, data: car });
+    res.json({ success: true, data: product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-const getCarByUserId = async (req, res) => {
+const getProductByUserId = async (req, res) => {
   try {
-    const cars = await Car.find({ user: req.params.id }).populate(
+    const products = await Product.find({ user: req.params.id }).populate(
       "user",
       "username email"
     );
 
-    if (cars.length === 0) {
+    if (products.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "No cars found for this user" });
+        .json({ success: false, message: "No products found for this user" });
     }
 
-    res.json({ success: true, data: cars });
+    res.json({ success: true, data: products });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -238,25 +244,27 @@ const getCarByUserId = async (req, res) => {
   }
 };
 
-// @desc    Delete a car listing
-// @route   DELETE /api/cars/:id
-const deleteCar = async (req, res) => {
+// @desc    Delete a product listing
+// @route   DELETE /api/products/:id
+const deleteProduct = async (req, res) => {
   try {
-    const car = await Car.findById(req.params.id);
-    if (!car) {
-      return res.status(404).json({ success: false, message: "Car not found" });
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "product not found" });
     }
 
-    // Ensure the authenticated user is the owner of the car
+    // Ensure the authenticated user is the owner of the product
     if (
-      car.user._id.toString() !== req.user.id &&
+      product.user._id.toString() !== req.user.id &&
       req?.user?.role !== "admin"
     ) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
-    await car.deleteOne();
-    res.json({ success: true, message: "Car deleted successfully" });
+    await product.deleteOne();
+    res.json({ success: true, message: "Product deleted successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -277,10 +285,10 @@ const approveCarListing = async (carOwnerEmail, carTitle) => {
 };
 
 module.exports = {
-  addCar,
-  updateCar,
-  deleteCar,
-  getCars,
-  getCarById,
-  getCarByUserId,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+  getProducts,
+  getProductById,
+  getProductByUserId,
 };

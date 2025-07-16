@@ -15,6 +15,7 @@ const messageSchema = new mongoose.Schema(
     message: { type: String },
     image: { type: String }, // NEW (Image URL)
     read: { type: Boolean, default: false },
+    product: { type: mongoose.Schema.Types.ObjectId },
   },
   { timestamps: true }
 );
