@@ -1,26 +1,51 @@
 const mongoose = require("mongoose");
 
-const carSchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    make: { type: String, required: true },
-    model: { type: String, required: true },
-    priceUSD: { type: String, required: true },
-    priceSYP: { type: String, required: false },
-    year: { type: String, required: true },
-    kilometer: { type: String, required: true },
-    engineSize: { type: String, required: false },
-    location: { type: String, required: false },
-    transmission: { type: String, required: false },
-    fuelType: { type: String, required: false },
-    exteriorColor: { type: String, required: false },
-    interiorColor: { type: String, required: false },
-    features: [{ type: String, required: true }],
-    description: { type: String, required: true },
-    images: [{ type: String }], // Array of image paths
-    status: { type: String, default: "pending" },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    description: {
+      type: String,
+      maxlength: 2000,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    category: {
+      type: String,
+      required: false,
+    },
+    stock: {
+      type: Number,
+      default: 1,
+      min: 0,
+    },
+    status: {
+      type: String,
+      enum: ["active", "inactive", "draft"],
+      default: "active",
+    },
+    images: [
+      {
+        type: String,
+      },
+    ],
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Product", carSchema);
+module.exports = mongoose.model("Product", productSchema);

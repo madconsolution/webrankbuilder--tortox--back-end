@@ -1,21 +1,62 @@
-// controllers/contactController.js
-const { sendEmail } = require("../services/emailService");
-const { contactFormEmailTemplate } = require("../services/emailTemplates");
+const Contact = require("../models/Contact");
 
-const handleContactForm = async (req, res) => {
-  const { name, email, phone, message } = req.body;
-
-  const subject = "New Contact Form Submission";
-  const html = contactFormEmailTemplate(name, email, phone, message);
-
+// Create a new contact message
+exports.createContact = async (req, res) => {
   try {
-    await sendEmail(process.env.EMAIL_USER, subject, "", html);
-    return res.status(200).json({ message: "Email sent successfully!" });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Failed to send email", error: error.message });
+    const { name, email, phone, subject, message } = req.body;
+
+    const contact = await Contact.create({
+      name,
+      email,
+      phone,
+      subject,
+      message,
+    });
+
+    res.status(201).json({ message: "Message sent successfully", contact });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
 
-module.exports = { handleContactForm };
+// Get all contact messages (with pagination and optional status)
+exports.getAllContacts = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const status = req.query.status;
+    const query = status ? { status } : {};
+
+    const [contacts, total] = await Promise.all([
+      Contact.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Contact.countDocuments(query),
+    ]);
+
+    res.json({
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      limit,
+      data: contacts,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Update contact message status (admin use)
+exports.updateContactStatus = async (req, res) => {
+  try {
+    const contact = await Contact.findById(req.params.id);
+    if (!contact) return res.status(404).json({ error: "Contact not found" });
+
+    contact.status = req.body.status || contact.status;
+    await contact.save();
+
+    res.json({ message: "Status updated", contact });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};

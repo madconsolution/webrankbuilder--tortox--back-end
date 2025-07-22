@@ -1,24 +1,26 @@
 const express = require("express");
+const router = express.Router();
 const {
-  addProduct,
+  createProduct,
+  getAllProducts,
+  getProductById,
+  getProductBySlug,
   updateProduct,
   deleteProduct,
-  getProducts,
-  getProductById,
-  getProductByUserId,
-} = require("../controllers/ProductController"); // ✅ Ensure this path is correct
+  getFeaturedProducts,
+  getProductsByCategory,
+} = require("../controllers/productController");
 
-const protect = require("../middleware/authMiddleware");
 const uploadMiddleware = require("../middleware/uploadMiddleware");
 
-const router = express.Router();
-
-// Upload up to 5 images per car listing
-router.post("/", protect, uploadMiddleware("cars", true, 5), addProduct);
-router.put("/:id", protect, uploadMiddleware("cars", true, 5), updateProduct);
-router.get("/uid/:id", getProductByUserId);
-router.get("/", getProducts);
+// CRUD + custom routes
+router.post("/", uploadMiddleware("products", true, 5), createProduct);
+router.get("/", getAllProducts);
+router.get("/featured", getFeaturedProducts);
+router.get("/category/:category", getProductsByCategory);
+router.get("/slug/:slug", getProductBySlug);
 router.get("/:id", getProductById);
-router.delete("/:id", protect, deleteProduct);
+router.put("/:id", uploadMiddleware("products", true, 5), updateProduct);
+router.delete("/:id", deleteProduct);
 
 module.exports = router;

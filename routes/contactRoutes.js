@@ -1,8 +1,17 @@
-// routes/contactRoutes.js
 const express = require("express");
-const { handleContactForm } = require("../controllers/contactController");
 const router = express.Router();
 
-router.post("/send", handleContactForm);
+const {
+  createContact,
+  getAllContacts,
+  updateContactStatus,
+} = require("../controllers/contactController");
+
+// Public: submit contact message
+router.post("/", createContact);
+
+// Admin: view & manage contacts
+router.get("/", getAllContacts);
+router.put("/:id/status", updateContactStatus);
 
 module.exports = router;
