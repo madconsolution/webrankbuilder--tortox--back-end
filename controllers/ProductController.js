@@ -1,6 +1,10 @@
 const Product = require("../models/Product");
 const slugify = require("../utils/slugify");
 
+// Remove deleted images from disk
+const fs = require("fs");
+const path = require("path");
+
 // Create a new product
 exports.createProduct = async (req, res) => {
   try {
@@ -81,7 +85,20 @@ exports.updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: "Product not found" });
 
-    const newImages = req.files?.map((file) => file.path);
+    const newImages = req.files?.map((file) => file.path) || [];
+    const existingImages = JSON.parse(req.body.existingImages || "[]");
+    const finalImages = [...existingImages, ...newImages];
+
+    const removedImages = product.images.filter(
+      (img) => !finalImages.includes(img)
+    );
+    removedImages.forEach((imgPath) => {
+      try {
+        fs.unlinkSync(path.resolve(imgPath));
+      } catch (err) {
+        console.warn(`Failed to delete ${imgPath}:`, err.message);
+      }
+    });
 
     const { name, description, price, category, stock, isFeatured, status } =
       req.body;
@@ -92,14 +109,14 @@ exports.updateProduct = async (req, res) => {
     }
 
     Object.assign(product, {
-      description,
-      price,
-      category,
-      stock,
+      description: description || product.description,
+      price: price || product.price,
+      category: category || product.category,
+      stock: stock || product.stock,
       isFeatured:
         isFeatured !== undefined ? isFeatured === "true" : product.isFeatured,
       status: status || product.status,
-      images: newImages?.length ? newImages : product.images,
+      images: finalImages,
     });
 
     const updated = await product.save();
@@ -112,9 +129,25 @@ exports.updateProduct = async (req, res) => {
 // Delete product
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: "Product not found" });
-    res.json({ message: "Product deleted successfully" });
+
+    // Delete image files from disk
+    product.images.forEach((imagePath) => {
+      const fullPath = path.resolve(imagePath);
+      try {
+        if (fs.existsSync(fullPath)) {
+          fs.unlinkSync(fullPath);
+        }
+      } catch (err) {
+        console.warn(`Failed to delete image ${imagePath}:`, err.message);
+      }
+    });
+
+    // Delete the product from the database
+    await Product.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "Product and images deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
